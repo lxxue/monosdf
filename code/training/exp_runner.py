@@ -6,6 +6,7 @@ import torch
 
 import os
 from training.monosdf_train import MonoSDFTrainRunner
+from sdf_datasets.scene_dataset import SceneDataset, SceneDatasetDN
 import datetime
 
 if __name__ == '__main__':
@@ -38,7 +39,6 @@ if __name__ == '__main__':
     else:
         gpu = opt.gpu
     '''
-    gpu = opt.local_rank
 
     # set distributed training
     if 'RANK' in os.environ and 'WORLD_SIZE' in os.environ:
@@ -49,8 +49,12 @@ if __name__ == '__main__':
         rank = -1
         world_size = -1
 
-    print(opt.local_rank)
-    torch.cuda.set_device(opt.local_rank)
+    # print(opt.local_rank)
+    local_rank = int(os.environ['LOCAL_RANK'])
+    gpu = local_rank
+    print("local rank: ", local_rank)
+    # torch.cuda.set_device(opt.local_rank)
+    torch.cuda.set_device(local_rank)
     torch.distributed.init_process_group(backend='nccl', init_method='env://', world_size=world_size, rank=rank, timeout=datetime.timedelta(1, 1800))
     torch.distributed.barrier()
 
