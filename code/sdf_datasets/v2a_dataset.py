@@ -224,7 +224,8 @@ class SceneDatasetDN(torch.utils.data.Dataset):
             self.depth_images.append(torch.from_numpy(depth.reshape(-1, 1)).float())
         
             normal = np.load(npath)
-            normal = normal.reshape(3, -1).transpose(1, 0)
+            # normal = normal.reshape(3, -1).transpose(1, 0)
+            normal = normal.reshape(-1, 3)
             # important as the output of omnidata is normalized
             normal = normal * 2. - 1.
             self.normal_images.append(torch.from_numpy(normal).float())
