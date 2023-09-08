@@ -138,7 +138,7 @@ class SceneDatasetDN(torch.utils.data.Dataset):
                  num_views=-1
                  ):
 
-        self.instance_dir = os.path.join("../data/v2a", data_dir, "processed")
+        self.instance_dir = os.path.join("/media/lixin/DATA/lixin/datasets/human-scene-recon/record3d", data_dir, "processed")
 
         self.total_pixels = img_res[0] * img_res[1]
         self.img_res = img_res
@@ -241,7 +241,11 @@ class SceneDatasetDN(torch.utils.data.Dataset):
             for path in mask_paths:
                 mask = imageio.imread(path)
                 # mask = np.load(path)
-                self.mask_images.append(torch.from_numpy(mask.reshape(-1, 1)).float())
+                mask = torch.from_numpy(mask.reshape(-1, 1)).float() / 255.0
+                # print(mask.min(), mask.max(), mask.mean())
+                mask = 1 - mask
+                # print(mask.min(), mask.max(), mask.mean())
+                self.mask_images.append(mask)
 
     def __len__(self):
         return self.n_images
@@ -269,6 +273,12 @@ class SceneDatasetDN(torch.utils.data.Dataset):
         }
 
         if self.sampling_idx is not None:
+            num_pixel = 1024
+            sampling_idx = torch.randperm(self.total_pixels)[:num_pixel * 3] 
+            mask = self.mask_images[idx][sampling_idx, 0]
+            sampling_idx = sampling_idx[mask > 0]
+            sampling_idx = sampling_idx[:num_pixel]
+            self.sampling_idx = sampling_idx
             ground_truth["rgb"] = self.rgb_images[idx][self.sampling_idx, :]
             ground_truth["full_rgb"] = self.rgb_images[idx]
             ground_truth["normal"] = self.normal_images[idx][self.sampling_idx, :]

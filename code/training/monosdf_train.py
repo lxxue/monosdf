@@ -256,14 +256,22 @@ class MonoSDFTrainRunner():
                 self.iter_step += 1                
                 
                 if self.GPU_INDEX == 0:
-                    print(
-                        '{0}_{1} [{2}] ({3}/{4}): loss = {5}, rgb_loss = {6}, eikonal_loss = {7}, psnr = {8}, bete={9}, alpha={10}'
-                            .format(self.expname, self.timestamp, epoch, data_index, self.n_batches, loss.item(),
+                    if data_index % 10 == 0:
+                        print(
+                        '{0} [{1}] : loss = {2:.3f}, psnr={3:.3f}, rgb = {4:.3f}, eikonal = {5:.3f}, smooth = {6:.3f}, depth = {7:.3f}, normal_l1 = {8:.3f}, normal_cos = {9:.3f}'
+                            .format(self.expname, epoch, loss.item(),
+                                    psnr.item(),
                                     loss_output['rgb_loss'].item(),
                                     loss_output['eikonal_loss'].item(),
-                                    psnr.item(),
-                                    self.model.module.density.get_beta().item(),
-                                    1. / self.model.module.density.get_beta().item()))
+                                    loss_output['smooth_loss'].item(),
+                                    loss_output['depth_loss'].item(),
+                                    loss_output['normal_l1'].item(),
+                                    loss_output['normal_cos'].item(),
+                            ))
+
+
+                                    # self.model.module.density.get_beta().item(),
+                                    # 1. / self.model.module.density.get_beta().item()))
                     
                     self.writer.add_scalar('Loss/loss', loss.item(), self.iter_step)
                     self.writer.add_scalar('Loss/color_loss', loss_output['rgb_loss'].item(), self.iter_step)
