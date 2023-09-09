@@ -189,11 +189,11 @@ class MonoSDFLoss(nn.Module):
         # TODO remove hard-coded scaling for depth
         return self.depth_loss(depth_pred.reshape(1, 32, 32), (depth_gt).reshape(1, 32, 32), mask.reshape(1, 32, 32))
         
-    def get_normal_loss(self, normal_pred, normal_gt):
+    def get_normal_loss(self, normal_pred, normal_gt, mask):
         normal_gt = torch.nn.functional.normalize(normal_gt, p=2, dim=-1)
         normal_pred = torch.nn.functional.normalize(normal_pred, p=2, dim=-1)
-        l1 = torch.abs(normal_pred - normal_gt).sum(dim=-1).mean()
-        cos = (1. - torch.sum(normal_pred * normal_gt, dim = -1)).mean()
+        l1 = torch.abs((normal_pred * mask - normal_gt * mask)).sum(dim=-1).mean()
+        cos = (1. - torch.sum(normal_pred * normal_gt * mask, dim = -1)).mean()
         return l1, cos
         
     def forward(self, model_outputs, ground_truth):
@@ -221,7 +221,7 @@ class MonoSDFLoss(nn.Module):
         if isinstance(depth_loss, float):
             depth_loss = torch.tensor(0.0).cuda().float()    
         
-        normal_l1, normal_cos = self.get_normal_loss(normal_pred * mask, normal_gt)
+        normal_l1, normal_cos = self.get_normal_loss(normal_pred, normal_gt, mask)
         
         smooth_loss = self.get_smooth_loss(model_outputs)
         

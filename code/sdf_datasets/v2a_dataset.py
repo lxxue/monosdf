@@ -240,7 +240,7 @@ class SceneDatasetDN(torch.utils.data.Dataset):
         else:
             import imageio
             for path in mask_paths:
-                mask = imageio.imread(path)
+                mask = imageio.imread(path)[:, :, 0]
                 # mask = np.load(path)
                 mask = torch.from_numpy(mask.reshape(-1, 1)).float() / 255.0
                 # print(mask.min(), mask.max(), mask.mean())
@@ -277,7 +277,7 @@ class SceneDatasetDN(torch.utils.data.Dataset):
             num_pixel = 1024
             sampling_idx = torch.randperm(self.total_pixels)[:num_pixel * 3] 
             mask = self.mask_images[idx][sampling_idx, 0]
-            sampling_idx = sampling_idx[mask > 0]
+            sampling_idx = sampling_idx[mask > 0.5]
             sampling_idx = sampling_idx[:num_pixel]
             self.sampling_idx = sampling_idx
             ground_truth["rgb"] = self.rgb_images[idx][self.sampling_idx, :]
@@ -289,6 +289,15 @@ class SceneDatasetDN(torch.utils.data.Dataset):
             ground_truth["full_mask"] = self.mask_images[idx]
          
             sample["uv"] = uv[self.sampling_idx, :]
+        
+            # rgb = self.rgb_images[idx].view(self.img_res[0], self.img_res[1], 3).numpy()
+            # # mask = self.mask_images[idx].view(self.img_res[0], self.img_res[1], 3).numpy()
+            # from hloc.utils.viz import plot_keypoints, plot_images
+            # import matplotlib.pyplot as plt
+            # plot_images([rgb])
+            # plot_keypoints([uv[self.sampling_idx, :].numpy()])
+            # plt.show()
+            # input()
 
         return idx, sample, ground_truth
 
